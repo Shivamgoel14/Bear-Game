@@ -1,235 +1,167 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const gridDisplay = document.querySelector(".grid")
-    const scoreDisplay = document.querySelector("#score")
-    const resultDisplay = document.querySelector("#result")
-    const width = 4
-    let squares = []
-    let score = 0
+    const gridContainer = document.querySelector(".grid-container");
+    const size = 4;
+    const maxBearValue = 4; 
+    let grid = Array(size).fill().map(() => Array(size).fill(0));
+    const images = [
+        'images/child-bear.jpeg',   // Represents 2
+        'images/big-bear.jpg',     // Represents 4
+        'images/Adult-Bear.jpg',   // Represents 8
+        'images/Senior-bear.jpeg'  // Represents 16
+    ];
 
-    // create the playing board
     function createBoard() {
-        for (let i = 0; i < width * width; i++) {
-            const square = document.createElement("div")
-            square.innerHTML = 0
-            gridDisplay.appendChild(square)
-            squares.push(square)
+        for (let i = 0; i < size * size; i++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+            gridContainer.appendChild(cell);
         }
-        generate()
-        generate()
-    }
-    createBoard()
-
-    //generate a new number
-    function generate() {
-        const randomNumber = Math.floor(Math.random() * squares.length)
-        if (squares[randomNumber].innerHTML == 0) {
-            squares[randomNumber].innerHTML = 2
-            checkForGameOver()
-        } else generate()
+        addBear();
+        addBear();
+        updateBoard();
     }
 
-    function moveRight() {
-        for (let i = 0; i < 16; i++) {
-            if (i % 4 === 0) {
-                let totalOne = squares[i].innerHTML
-                let totalTwo = squares[i + 1].innerHTML
-                let totalThree = squares[i + 2].innerHTML
-                let totalFour = squares[i + 3].innerHTML
-                let row = [parseInt(totalOne), parseInt(totalTwo), parseInt(totalThree), parseInt(totalFour)]
+    function addBear() {
+        let emptyCells = [];
+        for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+                if (grid[r][c] === 0) {
+                    emptyCells.push({ r, c });
+                }
+            }
+        }
+        if (emptyCells.length > 0) {
+            let { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            grid[r][c] = 1; // 1 represents a small bear (2 in 2048)
+        }
+    }
 
-                let filteredRow = row.filter(num => num)
-                let missing = 4 - filteredRow.length
-                let zeros = Array(missing).fill(0)
-                let newRow = zeros.concat(filteredRow)
+    function updateBoard() {
+        const cells = document.querySelectorAll(".cell");
+        cells.forEach((cell, i) => {
+            const row = Math.floor(i / size);
+            const col = i % size;
+            cell.innerHTML = '';
+            if (grid[row][col] !== 0) {
+                const tile = document.createElement("div");
+                tile.classList.add("tile");
+                const img = document.createElement("img");
+                img.src = images[Math.min(grid[row][col] - 1, maxBearValue - 1)];
+                tile.appendChild(img);
+                cell.appendChild(tile);
+            }
+        });
+    }
 
-                squares[i].innerHTML = newRow[0]
-                squares[i + 1].innerHTML = newRow[1]
-                squares[i + 2].innerHTML = newRow[2]
-                squares[i + 3].innerHTML = newRow[3]
+    function move(direction) {
+        let moved = false;
+        if (direction === "up" || direction === "down") {
+            for (let c = 0; c < size; c++) {
+                let col = [];
+                for (let r = 0; r < size; r++) {
+                    col.push(grid[r][c]);
+                }
+                const newCol = direction === "up" ? slide(col) : slide(col.reverse()).reverse();
+                for (let r = 0; r < size; r++) {
+                    if (grid[r][c] !== newCol[r]) {
+                        moved = true;
+                        grid[r][c] = newCol[r];
+                    }
+                }
+            }
+        } else if (direction === "left" || direction === "right") {
+            for (let r = 0; r < size; r++) {
+                let row = grid[r].slice();
+                const newRow = direction === "left" ? slide(row) : slide(row.reverse()).reverse();
+                if (grid[r].toString() !== newRow.toString()) {
+                    moved = true;
+                    grid[r] = newRow;
+                }
+            }
+        }
+        if (moved) {
+            addBear();
+            updateBoard();
+            if (isGameOver()) {
+                setTimeout(() => {
+                    alert("Game Over!");
+                }, 200);
             }
         }
     }
 
-    function moveLeft() {
-        for (let i = 0; i < 16; i++) {
-            if (i % 4 === 0) {
-                let totalOne = squares[i].innerHTML
-                let totalTwo = squares[i + 1].innerHTML
-                let totalThree = squares[i + 2].innerHTML
-                let totalFour = squares[i + 3].innerHTML
-                let row = [parseInt(totalOne), parseInt(totalTwo), parseInt(totalThree), parseInt(totalFour)]
-
-                let filteredRow = row.filter(num => num)
-                let missing = 4 - filteredRow.length
-                let zeros = Array(missing).fill(0)
-                let newRow = filteredRow.concat(zeros)
-
-                squares[i].innerHTML = newRow[0]
-                squares[i + 1].innerHTML = newRow[1]
-                squares[i + 2].innerHTML = newRow[2]
-                squares[i + 3].innerHTML = newRow[3]
+    function slide(array) {
+        let newArray = array.filter(val => val);
+        for (let i = 0; i < newArray.length - 1; i++) {
+            if (newArray[i] === newArray[i + 1] && newArray[i] < maxBearValue) {
+                newArray[i]++;
+                newArray.splice(i + 1, 1);
+                newArray.push(0);
             }
         }
-    }
-
-    function moveUp() {
-        for (let i = 0; i < 4; i++) {
-            let totalOne = squares[i].innerHTML
-            let totalTwo = squares[i + width].innerHTML
-            let totalThree = squares[i + width * 2].innerHTML
-            let totalFour = squares[i + width * 3].innerHTML
-            let column = [parseInt(totalOne), parseInt(totalTwo), parseInt(totalThree), parseInt(totalFour)]
-
-            let filteredColumn = column.filter(num => num)
-            let missing = 4 - filteredColumn.length
-            let zeros = Array(missing).fill(0)
-            let newColumn = filteredColumn.concat(zeros)
-
-            squares[i].innerHTML = newColumn[0]
-            squares[i + width].innerHTML = newColumn[1]
-            squares[i + width * 2].innerHTML = newColumn[2]
-            squares[i + width * 3].innerHTML = newColumn[3]
+        while (newArray.length < size) {
+            newArray.push(0);
         }
+        return newArray;
     }
 
-    function moveDown() {
-        for (let i = 0; i < 4; i++) {
-            let totalOne = squares[i].innerHTML
-            let totalTwo = squares[i + width].innerHTML
-            let totalThree = squares[i + width * 2].innerHTML
-            let totalFour = squares[i + width * 3].innerHTML
-            let column = [parseInt(totalOne), parseInt(totalTwo), parseInt(totalThree), parseInt(totalFour)]
-
-            let filteredColumn = column.filter(num => num)
-            let missing = 4 - filteredColumn.length
-            let zeros = Array(missing).fill(0)
-            let newColumn = zeros.concat(filteredColumn)
-
-            squares[i].innerHTML = newColumn[0]
-            squares[i + width].innerHTML = newColumn[1]
-            squares[i + width * 2].innerHTML = newColumn[2]
-            squares[i + width * 3].innerHTML = newColumn[3]
-        }
-    }
-
-    function combineRow() {
-        for (let i = 0; i < 15; i++) {
-            if (squares[i].innerHTML === squares[i + 1].innerHTML) {
-                let combinedTotal = parseInt(squares[i].innerHTML) + parseInt(squares[i + 1].innerHTML)
-                squares[i].innerHTML = combinedTotal
-                squares[i + 1].innerHTML = 0
-                score += combinedTotal
-                scoreDisplay.innerHTML = score
+    function isGameOver() {
+        // Check if any cell is empty
+        for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+                if (grid[r][c] === 0) {
+                    console.log('Empty cell found, game continues');
+                    return false;
+                }
             }
         }
-        checkForWin()
-    }
-
-    function combineColumn() {
-        for (let i = 0; i < 12; i++) {
-            if (squares[i].innerHTML === squares[i + width].innerHTML) {
-                let combinedTotal = parseInt(squares[i].innerHTML) + parseInt(squares[i + width].innerHTML)
-                squares[i].innerHTML = combinedTotal
-                squares[i + width].innerHTML = 0
-                score += combinedTotal
-                scoreDisplay.innerHTML = score
+        // Check if any adjacent cells can merge
+        for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+                if (c < size - 1 && grid[r][c] === grid[r][c + 1] && grid[r][c] < maxBearValue) {
+                    console.log('Possible merge found horizontally, game continues');
+                    return false;
+                }
+                if (r < size - 1 && grid[r][c] === grid[r + 1][c] && grid[r][c] < maxBearValue) {
+                    console.log('Possible merge found vertically, game continues');
+                    return false;
+                }
             }
         }
-        checkForWin()
+        console.log('No moves left, game over');
+        return true;
     }
 
-    ///assign functions to keys
-    function control(e) {
-        if (e.key === "ArrowLeft") {
-            keyLeft()
-        } else if (e.key === "ArrowRight") {
-            keyRight()
-        } else if (e.key === "ArrowUp") {
-            keyUp()
-        } else if (e.key === "ArrowDown") {
-            keyDown()
-        }
-    }
-    document.addEventListener("keydown", control)
-
-    function keyLeft() {
-        moveLeft()
-        combineRow()
-        moveLeft()
-        generate()
-    }
-
-    function keyRight() {
-        moveRight()
-        combineRow()
-        moveRight()
-        generate()
-    }
-
-    function keyUp() {
-        moveUp()
-        combineColumn()
-        moveUp()
-        generate()
-    }
-
-    function keyDown() {
-        moveDown()
-        combineColumn()
-        moveDown()
-        generate()
-    }
-
-    //check for the number 2048 in the squares to win
-    function checkForWin() {
-        for (let i = 0; i < squares.length; i++) {
-            if (squares[i].innerHTML == 2048) {
-                resultDisplay.innerHTML = "You WIN!"
-                document.removeEventListener("keydown", control)
-                setTimeout(clear, 3000)
+    function addBear() {
+        let emptyCells = [];
+        for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+                if (grid[r][c] === 0) {
+                    emptyCells.push({ r, c });
+                }
             }
         }
-    }
-
-    //check if there are no zeros on the board to lose
-    function checkForGameOver() {
-        let zeros = 0
-        for (let i = 0; i < squares.length; i++) {
-            if (squares[i].innerHTML == 0) {
-                zeros++
-            }
-        }
-        if (zeros === 0) {
-            resultDisplay.innerHTML = "You LOSE!"
-            document.removeEventListener("keydown", control)
-            setTimeout(clear, 3000)
+        if (emptyCells.length > 0) {
+            let { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            grid[r][c] = 1; // 1 represents a small bear (2 in 2048)
+            updateScore(2); // Increment score by 2 when a bear is added
         }
     }
-
-    function clear() {
-        clearInterval(myTimer)
+    
+    let score = 0;
+    
+    function updateScore(points) {
+        score += points;
+        document.getElementById("score").textContent = score;
     }
 
-    //add colours
-    function addColours() {
-        for (let i = 0; i < squares.length; i++) {
-            if (squares[i].innerHTML == 0) squares[i].style.backgroundColor = "#afa192"
-            else if (squares[i].innerHTML == 2) squares[i].style.backgroundColor = "#eee4da"
-            else if (squares[i].innerHTML == 4) squares[i].style.backgroundColor = "#ede0c8"
-            else if (squares[i].innerHTML == 8) squares[i].style.backgroundColor = "#f2b179"
-            else if (squares[i].innerHTML == 16) squares[i].style.backgroundColor = "#ffcea4"
-            else if (squares[i].innerHTML == 32) squares[i].style.backgroundColor = "#e8c064"
-            else if (squares[i].innerHTML == 64) squares[i].style.backgroundColor = "#ffab6e"
-            else if (squares[i].innerHTML == 128) squares[i].style.backgroundColor = "#fd9982"
-            else if (squares[i].innerHTML == 256) squares[i].style.backgroundColor = "#ead79c"
-            else if (squares[i].innerHTML == 512) squares[i].style.backgroundColor = "#76daff"
-            else if (squares[i].innerHTML == 1024) squares[i].style.backgroundColor = "#beeaa5"
-            else if (squares[i].innerHTML == 2048) squares[i].style.backgroundColor = "#d7d4f0"
-        }
+    function handleKeyPress(e) {
+        if (e.key === "ArrowUp") move("up");
+        if (e.key === "ArrowDown") move("down");
+        if (e.key === "ArrowLeft") move("left");
+        if (e.key === "ArrowRight") move("right");
     }
-    addColours()
 
-    let myTimer = setInterval(addColours, 50)
-})
-
-
+    document.addEventListener("keydown", handleKeyPress);
+    createBoard();
+});
