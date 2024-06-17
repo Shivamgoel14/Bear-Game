@@ -29,7 +29,7 @@ h1 {
     position: relative;
     width: 500px;
     height: 500px;
-    background: url('images/Forest.jpg'); /* Replace with your image path */
+    background: url('images/Forest.jpg'); 
     background-size: cover;
     border-radius: 10px;
     padding: 10px;
@@ -47,7 +47,7 @@ h1 {
 .cell {
     width: 100px;
     height: 100px;
-    background: rgba(205, 193, 180, 0.2); /* Reduced opacity here */
+    background: rgba(205, 193, 180, 0.2); 
     border-radius: 5px;
     display: flex;
     align-items: center;

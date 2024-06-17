@@ -4,10 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const maxBearValue = 4; 
     let grid = Array(size).fill().map(() => Array(size).fill(0));
     const images = [
-        'images/child-bear.jpeg',   // Represents 2
-        'images/big-bear.jpg',     // Represents 4
-        'images/Adult-Bear.jpg',   // Represents 8
-        'images/Senior-bear.jpeg'  // Represents 16
+        'images/child-bear.jpeg',   
+        'images/big-bear.jpg',     
+        'images/Adult-Bear.jpg',   
+        'images/Senior-bear.jpeg'  
     ];
 
     function createBoard() {
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (emptyCells.length > 0) {
             let { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            grid[r][c] = 1; // 1 represents a small bear (2 in 2048)
+            grid[r][c] = 1; 
         }
     }
 
@@ -106,7 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function isGameOver() {
-        // Check if any cell is empty
         for (let r = 0; r < size; r++) {
             for (let c = 0; c < size; c++) {
                 if (grid[r][c] === 0) {
@@ -115,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
         }
-        // Check if any adjacent cells can merge
+        
         for (let r = 0; r < size; r++) {
             for (let c = 0; c < size; c++) {
                 if (c < size - 1 && grid[r][c] === grid[r][c + 1] && grid[r][c] < maxBearValue) {
@@ -143,8 +142,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         if (emptyCells.length > 0) {
             let { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            grid[r][c] = 1; // 1 represents a small bear (2 in 2048)
-            updateScore(2); // Increment score by 2 when a bear is added
+            grid[r][c] = 1; 
+            updateScore(2); 
         }
     }
     
